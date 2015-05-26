@@ -16,6 +16,6 @@ then
   if [ $? -ne 0 ]
   then
     echo "Website down. Sending email and/or text messages."
-    /usr/bin/mail -s "Website Down" 1234567890@txt.att.net email@address.com < /dev/null
+    /usr/sbin/sendmail 123456789@txt.att.net email@address.com <<< "Website Down"
   fi
 fi
