@@ -1,21 +1,30 @@
 #!/bin/bash
 
-# Access the website either with its domain name or IP address. Acessing the
-# website by IP address will ignore DNS issues, which may be out of our control.
-url=http://www.example.com
-#url=http://123.123.123.13
+# List of URLs to check.
+urls=(
+  http://www.example1.com
+  http://www.example2.com
+)
 
-# If the website appears down, check again in five minutes to eliminate
-# false positives.
-/usr/bin/wget --server-response -O /dev/null $url > /dev/null 2> /dev/null
-if [ $? -ne 0 ]
-then
-  echo "Website down. Waiting 5 minutes."
-  sleep 300
+for url in "${urls[@]}"
+do
   /usr/bin/wget --server-response -O /dev/null $url > /dev/null 2> /dev/null
   if [ $? -ne 0 ]
   then
-    echo "Website down. Sending email and/or text messages."
-    /usr/sbin/sendmail 123456789@txt.att.net email@address.com <<< "Website Down"
+    # Full URLs can disappear in text messages. Extract the domain and use that
+    # for all error reporting instead.
+    domain=`echo $url | awk -F/ '{print $3} down'`
+
+    # If the website appears down, check again in five minutes to eliminate
+    # false positives.
+    echo "$domain down. Waiting 5 minutes."
+    sleep 300
+
+    /usr/bin/wget --server-response -O /dev/null $url > /dev/null 2> /dev/null
+    if [ $? -ne 0 ]
+    then
+      echo "$domain still down. Sending email and/or text messages."
+      echo "$domain down" | /usr/sbin/sendmail 123456789@txt.att.net email@address.com
+    fi
   fi
-fi
+done
